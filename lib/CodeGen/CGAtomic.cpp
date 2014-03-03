@@ -476,6 +476,8 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E, llvm::Value *Dest) {
     Args.add(RValue::get(EmitCastToVoidPtr(Ptr)), getContext().VoidPtrTy);
 
     std::string LibCallName;
+    QualType LoweredMemTy =
+      MemTy->isPointerType() ? getContext().getIntPtrType() : MemTy;
     QualType RetTy;
     bool HaveRetTy = false;
     switch (E->getOp()) {
@@ -531,7 +533,7 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E, llvm::Value *Dest) {
     case AtomicExpr::AO__c11_atomic_fetch_add:
     case AtomicExpr::AO__atomic_fetch_add:
       LibCallName = "__atomic_fetch_add";
-      AddDirectArgument(*this, Args, UseOptimizedLibcall, Val1, MemTy,
+      AddDirectArgument(*this, Args, UseOptimizedLibcall, Val1, LoweredMemTy,
                         E->getExprLoc());
       break;
     // T __atomic_fetch_and_N(T *mem, T val, int order)
@@ -552,7 +554,7 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E, llvm::Value *Dest) {
     case AtomicExpr::AO__c11_atomic_fetch_sub:
     case AtomicExpr::AO__atomic_fetch_sub:
       LibCallName = "__atomic_fetch_sub";
-      AddDirectArgument(*this, Args, UseOptimizedLibcall, Val1, MemTy,
+      AddDirectArgument(*this, Args, UseOptimizedLibcall, Val1, LoweredMemTy,
                         E->getExprLoc());
       break;
     // T __atomic_fetch_xor_N(T *mem, T val, int order)
